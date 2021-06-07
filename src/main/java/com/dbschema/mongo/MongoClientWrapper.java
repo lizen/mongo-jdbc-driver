@@ -1,14 +1,24 @@
 package com.dbschema.mongo;
 
-import com.mongodb.ConnectionString;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.MongoIterable;
-import org.bson.UuidRepresentation;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.ALLOW_INVALID_CERTIFICATES;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.ALLOW_INVALID_CERTIFICATES_DEFAULT;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.ALLOW_INVALID_HOSTNAMES;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.ALLOW_INVALID_HOSTNAMES_DEFAULT;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.APPLICATION_NAME;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.CONNECT_TIMEOUT;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.CONNECT_TIMEOUT_DEFAULT;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.ENCODE_CREDENTIALS;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.ENCODE_CREDENTIALS_DEFAULT;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.MAX_POOL_SIZE;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.MAX_POOL_SIZE_DEFAULT;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.SERVER_SELECTION_TIMEOUT;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.SERVER_SELECTION_TIMEOUT_DEFAULT;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.UUID_REPRESENTATION;
+import static com.dbschema.mongo.DriverPropertyInfoHelper.UUID_REPRESENTATION_DEFAULT;
+import static com.dbschema.mongo.SSLUtil.getTrustEverybodySSLContext;
+import static com.dbschema.mongo.Util.insertCredentials;
+import static com.dbschema.mongo.Util.isNullOrEmpty;
+import static com.dbschema.mongo.Util.isTrue;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -17,9 +27,17 @@ import java.sql.SQLException;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
-import static com.dbschema.mongo.DriverPropertyInfoHelper.*;
-import static com.dbschema.mongo.SSLUtil.getTrustEverybodySSLContext;
-import static com.dbschema.mongo.Util.*;
+import org.bson.UuidRepresentation;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoCredential;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoIterable;
 
 
 public class MongoClientWrapper implements AutoCloseable {
@@ -37,9 +55,23 @@ public class MongoClientWrapper implements AutoCloseable {
       ConnectionString connectionString = new ConnectionString(uri);
       databaseNameFromUrl = connectionString.getDatabase();
       int maxPoolSize = getMaxPoolSize(prop);
-      MongoClientSettings.Builder builder = MongoClientSettings.builder()
-          .applyConnectionString(connectionString)
-          .applyToConnectionPoolSettings(b -> b.maxSize(maxPoolSize));
+
+      MongoCredential credential = null;
+      MongoClientSettings.Builder builder = null;
+      if (!isNullOrEmpty(username) && !isNullOrEmpty(password)) {
+          String databaseName = prop.getProperty("authSource", "admin");
+          credential = MongoCredential.createCredential(username, databaseName, password.toCharArray());
+
+          builder = MongoClientSettings.builder()
+                  .applyConnectionString(connectionString)
+                  .credential(credential)
+                  .applyToConnectionPoolSettings(b -> b.maxSize(maxPoolSize));
+      } else {
+          builder = MongoClientSettings.builder()
+                  .applyConnectionString(connectionString)
+                  .applyToConnectionPoolSettings(b -> b.maxSize(maxPoolSize));
+      }
+
       String application = prop.getProperty(APPLICATION_NAME);
       if (!isNullOrEmpty(application)) {
         builder.applicationName(application);

@@ -1,15 +1,21 @@
 package com.dbschema.mongo;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.RowIdLifetime;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.dbschema.mongo.resultSet.ListResultSet;
 import com.dbschema.mongo.schema.MetaCollection;
 import com.dbschema.mongo.schema.MetaField;
 import com.dbschema.mongo.schema.MetaIndex;
 import com.dbschema.mongo.schema.MetaJson;
-import org.jetbrains.annotations.NotNull;
-
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Mongo databases are equivalent to catalogs for this driver. Schemas aren't used. Mongo collections are
@@ -56,7 +62,8 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
    * @see java.sql.DatabaseMetaData#getTables(java.lang.String, java.lang.String, java.lang.String,
    * java.lang.String[])
    */
-  public ResultSet getTables(String catalogName, String schemaPattern, String tableNamePattern, String[] types) throws SQLAlreadyClosedException {
+  @Override
+public ResultSet getTables(String catalogName, String schemaPattern, String tableNamePattern, String[] types) throws SQLAlreadyClosedException {
     ListResultSet resultSet = new ListResultSet();
     resultSet.setColumnNames("TABLE_CAT", "TABLE_SCHEM", "TABLE_NAME",
         "TABLE_TYPE", "REMARKS", "TYPE_CAT", "TYPE_SCHEM", "TYPE_NAME", "SELF_REFERENCING_COL_NAME",
@@ -172,7 +179,8 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
   /**
    * @see java.sql.DatabaseMetaData#getPrimaryKeys(java.lang.String, java.lang.String, java.lang.String)
    */
-  public ResultSet getPrimaryKeys(String catalogName, String schemaName, String tableNamePattern) throws SQLAlreadyClosedException {
+  @Override
+public ResultSet getPrimaryKeys(String catalogName, String schemaName, String tableNamePattern) throws SQLAlreadyClosedException {
     /*
      * 	<LI><B>TABLE_CAT</B> String => table catalog (may be <code>null</code>)
      *	<LI><B>TABLE_SCHEM</B> String => table schema (may be <code>null</code>)
@@ -213,7 +221,8 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
    * @see java.sql.DatabaseMetaData#getIndexInfo(java.lang.String, java.lang.String, java.lang.String,
    * boolean, boolean)
    */
-  public ResultSet getIndexInfo(String catalogName, String schemaName, String tableNamePattern, boolean unique,
+  @Override
+public ResultSet getIndexInfo(String catalogName, String schemaName, String tableNamePattern, boolean unique,
                                 boolean approximate) throws SQLAlreadyClosedException {
     /*
      *      *  <OL>
@@ -284,7 +293,8 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
   /**
    * @see java.sql.DatabaseMetaData#getTypeInfo()
    */
-  public ResultSet getTypeInfo() {
+  @Override
+public ResultSet getTypeInfo() {
         /*
             * <P>Each type description has the following columns:
             *  <OL>
@@ -373,64 +383,77 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
   }
 
 
-  public <T> T unwrap(Class<T> iface) {
+  @Override
+public <T> T unwrap(Class<T> iface) {
     return null;
   }
 
-  public boolean isWrapperFor(Class<?> iface) {
+  @Override
+public boolean isWrapperFor(Class<?> iface) {
     return false;
   }
 
-  public boolean allProceduresAreCallable() {
+  @Override
+public boolean allProceduresAreCallable() {
     return false;
   }
 
-  public boolean allTablesAreSelectable() {
+  @Override
+public boolean allTablesAreSelectable() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#getURL()
    */
-  public String getURL() {
+  @Override
+public String getURL() {
     return con.getUrl();
   }
 
-  public String getUserName() {
+  @Override
+public String getUserName() {
     return null;
   }
 
-  public boolean isReadOnly() {
+  @Override
+public boolean isReadOnly() {
     return false;
   }
 
-  public boolean nullsAreSortedHigh() {
+  @Override
+public boolean nullsAreSortedHigh() {
     return false;
   }
 
-  public boolean nullsAreSortedLow() {
+  @Override
+public boolean nullsAreSortedLow() {
     return false;
   }
 
-  public boolean nullsAreSortedAtStart() {
+  @Override
+public boolean nullsAreSortedAtStart() {
     return false;
   }
 
-  public boolean nullsAreSortedAtEnd() {
+  @Override
+public boolean nullsAreSortedAtEnd() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#getDatabaseProductName()
    */
-  public String getDatabaseProductName() {
+  @Override
+public String getDatabaseProductName() {
     return "Mongo DB";
   }
 
   /**
    * @see java.sql.DatabaseMetaData#getDatabaseProductVersion()
    */
-  @NotNull
+  @Override
+@NotNull
   public String getDatabaseProductVersion() throws SQLException {
     return con.getService().getVersion();
   }
@@ -438,107 +461,129 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
   /**
    * @see java.sql.DatabaseMetaData#getDriverName()
    */
-  public String getDriverName() {
+  @Override
+public String getDriverName() {
     return "MongoDB JDBC Driver";
   }
 
   /**
    * @see java.sql.DatabaseMetaData#getDriverVersion()
    */
-  public String getDriverVersion() {
+  @Override
+public String getDriverVersion() {
     return "1.11";
   }
 
   /**
    * @see java.sql.DatabaseMetaData#getDriverMajorVersion()
    */
-  public int getDriverMajorVersion() {
+  @Override
+public int getDriverMajorVersion() {
     return 1;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#getDriverMinorVersion()
    */
-  public int getDriverMinorVersion() {
+  @Override
+public int getDriverMinorVersion() {
     return 11;
   }
 
-  public boolean usesLocalFiles() {
+  @Override
+public boolean usesLocalFiles() {
 
     return false;
   }
 
-  public boolean usesLocalFilePerTable() {
+  @Override
+public boolean usesLocalFilePerTable() {
     return false;
   }
 
-  public boolean supportsMixedCaseIdentifiers() {
+  @Override
+public boolean supportsMixedCaseIdentifiers() {
     return false;
   }
 
-  public boolean storesUpperCaseIdentifiers() {
+  @Override
+public boolean storesUpperCaseIdentifiers() {
     return false;
   }
 
-  public boolean storesLowerCaseIdentifiers() {
+  @Override
+public boolean storesLowerCaseIdentifiers() {
     return false;
   }
 
-  public boolean storesMixedCaseIdentifiers() {
+  @Override
+public boolean storesMixedCaseIdentifiers() {
     return false;
   }
 
-  public boolean supportsMixedCaseQuotedIdentifiers() {
+  @Override
+public boolean supportsMixedCaseQuotedIdentifiers() {
     return false;
   }
 
-  public boolean storesUpperCaseQuotedIdentifiers() {
+  @Override
+public boolean storesUpperCaseQuotedIdentifiers() {
     return false;
   }
 
-  public boolean storesLowerCaseQuotedIdentifiers() {
+  @Override
+public boolean storesLowerCaseQuotedIdentifiers() {
     return false;
   }
 
-  public boolean storesMixedCaseQuotedIdentifiers() {
+  @Override
+public boolean storesMixedCaseQuotedIdentifiers() {
 
     return false;
   }
 
-  public String getIdentifierQuoteString() {
+  @Override
+public String getIdentifierQuoteString() {
 
     return null;
   }
 
-  public String getSQLKeywords() {
+  @Override
+public String getSQLKeywords() {
 
     return null;
   }
 
-  public String getNumericFunctions() {
+  @Override
+public String getNumericFunctions() {
 
     return null;
   }
 
-  public String getStringFunctions() {
+  @Override
+public String getStringFunctions() {
 
     return null;
   }
 
-  public String getSystemFunctions() {
+  @Override
+public String getSystemFunctions() {
 
     return null;
   }
 
-  public String getTimeDateFunctions() {
+  @Override
+public String getTimeDateFunctions() {
     return "date";
   }
 
-  public String getSearchStringEscape() {
+  @Override
+public String getSearchStringEscape() {
     return "\\";
   }
 
-  public String getExtraNameCharacters() {
+  @Override
+public String getExtraNameCharacters() {
 
     return null;
   }
@@ -546,259 +591,300 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
   /**
    * @see java.sql.DatabaseMetaData#supportsAlterTableWithAddColumn()
    */
-  public boolean supportsAlterTableWithAddColumn() {
+  @Override
+public boolean supportsAlterTableWithAddColumn() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsAlterTableWithDropColumn()
    */
-  public boolean supportsAlterTableWithDropColumn() {
+  @Override
+public boolean supportsAlterTableWithDropColumn() {
     return false;
   }
 
-  public boolean supportsColumnAliasing() {
-
-    return false;
-  }
-
-  public boolean nullPlusNonNullIsNull() {
-
-    return false;
-  }
-
-  public boolean supportsConvert() {
+  @Override
+public boolean supportsColumnAliasing() {
 
     return false;
   }
 
-  public boolean supportsConvert(int fromType, int toType) {
+  @Override
+public boolean nullPlusNonNullIsNull() {
 
     return false;
   }
 
-  public boolean supportsTableCorrelationNames() {
+  @Override
+public boolean supportsConvert() {
 
     return false;
   }
 
-  public boolean supportsDifferentTableCorrelationNames() {
+  @Override
+public boolean supportsConvert(int fromType, int toType) {
 
     return false;
   }
 
-  public boolean supportsExpressionsInOrderBy() {
+  @Override
+public boolean supportsTableCorrelationNames() {
 
     return false;
   }
 
-  public boolean supportsOrderByUnrelated() {
+  @Override
+public boolean supportsDifferentTableCorrelationNames() {
 
     return false;
   }
 
-  public boolean supportsGroupBy() {
+  @Override
+public boolean supportsExpressionsInOrderBy() {
 
     return false;
   }
 
-  public boolean supportsGroupByUnrelated() {
+  @Override
+public boolean supportsOrderByUnrelated() {
 
     return false;
   }
 
-  public boolean supportsGroupByBeyondSelect() {
+  @Override
+public boolean supportsGroupBy() {
 
     return false;
   }
 
-  public boolean supportsLikeEscapeClause() {
+  @Override
+public boolean supportsGroupByUnrelated() {
+
+    return false;
+  }
+
+  @Override
+public boolean supportsGroupByBeyondSelect() {
+
+    return false;
+  }
+
+  @Override
+public boolean supportsLikeEscapeClause() {
     return true;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsMultipleResultSets()
    */
-  public boolean supportsMultipleResultSets() {
+  @Override
+public boolean supportsMultipleResultSets() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsMultipleTransactions()
    */
-  public boolean supportsMultipleTransactions() {
+  @Override
+public boolean supportsMultipleTransactions() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsNonNullableColumns()
    */
-  public boolean supportsNonNullableColumns() {
+  @Override
+public boolean supportsNonNullableColumns() {
     return true;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsMinimumSQLGrammar()
    */
-  public boolean supportsMinimumSQLGrammar() {
+  @Override
+public boolean supportsMinimumSQLGrammar() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsCoreSQLGrammar()
    */
-  public boolean supportsCoreSQLGrammar() {
+  @Override
+public boolean supportsCoreSQLGrammar() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsExtendedSQLGrammar()
    */
-  public boolean supportsExtendedSQLGrammar() {
+  @Override
+public boolean supportsExtendedSQLGrammar() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsANSI92EntryLevelSQL()
    */
-  public boolean supportsANSI92EntryLevelSQL() {
+  @Override
+public boolean supportsANSI92EntryLevelSQL() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsANSI92IntermediateSQL()
    */
-  public boolean supportsANSI92IntermediateSQL() {
+  @Override
+public boolean supportsANSI92IntermediateSQL() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsANSI92FullSQL()
    */
-  public boolean supportsANSI92FullSQL() {
+  @Override
+public boolean supportsANSI92FullSQL() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsIntegrityEnhancementFacility()
    */
-  public boolean supportsIntegrityEnhancementFacility() {
+  @Override
+public boolean supportsIntegrityEnhancementFacility() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsOuterJoins()
    */
-  public boolean supportsOuterJoins() {
+  @Override
+public boolean supportsOuterJoins() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsFullOuterJoins()
    */
-  public boolean supportsFullOuterJoins() {
+  @Override
+public boolean supportsFullOuterJoins() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsLimitedOuterJoins()
    */
-  public boolean supportsLimitedOuterJoins() {
+  @Override
+public boolean supportsLimitedOuterJoins() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#getSchemaTerm()
    */
-  public String getSchemaTerm() {
+  @Override
+public String getSchemaTerm() {
     return null;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#getProcedureTerm()
    */
-  public String getProcedureTerm() {
+  @Override
+public String getProcedureTerm() {
     return null;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#getCatalogTerm()
    */
-  public String getCatalogTerm() {
+  @Override
+public String getCatalogTerm() {
     return "database";
   }
 
   /**
    * @see java.sql.DatabaseMetaData#isCatalogAtStart()
    */
-  public boolean isCatalogAtStart() {
+  @Override
+public boolean isCatalogAtStart() {
     return true;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#getCatalogSeparator()
    */
-  public String getCatalogSeparator() {
+  @Override
+public String getCatalogSeparator() {
     return ".";
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsSchemasInDataManipulation()
    */
-  public boolean supportsSchemasInDataManipulation() {
+  @Override
+public boolean supportsSchemasInDataManipulation() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsSchemasInProcedureCalls()
    */
-  public boolean supportsSchemasInProcedureCalls() {
+  @Override
+public boolean supportsSchemasInProcedureCalls() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsSchemasInTableDefinitions()
    */
-  public boolean supportsSchemasInTableDefinitions() {
+  @Override
+public boolean supportsSchemasInTableDefinitions() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsSchemasInIndexDefinitions()
    */
-  public boolean supportsSchemasInIndexDefinitions() {
+  @Override
+public boolean supportsSchemasInIndexDefinitions() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsSchemasInPrivilegeDefinitions()
    */
-  public boolean supportsSchemasInPrivilegeDefinitions() {
+  @Override
+public boolean supportsSchemasInPrivilegeDefinitions() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsCatalogsInDataManipulation()
    */
-  public boolean supportsCatalogsInDataManipulation() {
+  @Override
+public boolean supportsCatalogsInDataManipulation() {
     return true;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsCatalogsInProcedureCalls()
    */
-  public boolean supportsCatalogsInProcedureCalls() {
+  @Override
+public boolean supportsCatalogsInProcedureCalls() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsCatalogsInTableDefinitions()
    */
-  public boolean supportsCatalogsInTableDefinitions() {
+  @Override
+public boolean supportsCatalogsInTableDefinitions() {
     return false;
   }
 
-  public boolean supportsCatalogsInIndexDefinitions() {
+  @Override
+public boolean supportsCatalogsInIndexDefinitions() {
 
     return false;
   }
@@ -806,129 +892,153 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
   /**
    * @see java.sql.DatabaseMetaData#supportsCatalogsInPrivilegeDefinitions()
    */
-  public boolean supportsCatalogsInPrivilegeDefinitions() {
+  @Override
+public boolean supportsCatalogsInPrivilegeDefinitions() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsPositionedDelete()
    */
-  public boolean supportsPositionedDelete() {
+  @Override
+public boolean supportsPositionedDelete() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsPositionedUpdate()
    */
-  public boolean supportsPositionedUpdate() {
+  @Override
+public boolean supportsPositionedUpdate() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsSelectForUpdate()
    */
-  public boolean supportsSelectForUpdate() {
+  @Override
+public boolean supportsSelectForUpdate() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsStoredProcedures()
    */
-  public boolean supportsStoredProcedures() {
+  @Override
+public boolean supportsStoredProcedures() {
     return false;
   }
 
-  public boolean supportsSubqueriesInComparisons() {
-
-    return false;
-  }
-
-  public boolean supportsSubqueriesInExists() {
-
-    return false;
-  }
-
-  public boolean supportsSubqueriesInIns() {
+  @Override
+public boolean supportsSubqueriesInComparisons() {
 
     return false;
   }
 
-  public boolean supportsSubqueriesInQuantifieds() {
+  @Override
+public boolean supportsSubqueriesInExists() {
 
     return false;
   }
 
-  public boolean supportsCorrelatedSubqueries() {
+  @Override
+public boolean supportsSubqueriesInIns() {
 
     return false;
   }
 
-  public boolean supportsUnion() {
+  @Override
+public boolean supportsSubqueriesInQuantifieds() {
 
     return false;
   }
 
-  public boolean supportsUnionAll() {
+  @Override
+public boolean supportsCorrelatedSubqueries() {
 
     return false;
   }
 
-  public boolean supportsOpenCursorsAcrossCommit() {
+  @Override
+public boolean supportsUnion() {
 
     return false;
   }
 
-  public boolean supportsOpenCursorsAcrossRollback() {
+  @Override
+public boolean supportsUnionAll() {
 
     return false;
   }
 
-  public boolean supportsOpenStatementsAcrossCommit() {
+  @Override
+public boolean supportsOpenCursorsAcrossCommit() {
 
     return false;
   }
 
-  public boolean supportsOpenStatementsAcrossRollback() {
+  @Override
+public boolean supportsOpenCursorsAcrossRollback() {
 
     return false;
   }
 
-  public int getMaxBinaryLiteralLength() {
+  @Override
+public boolean supportsOpenStatementsAcrossCommit() {
+
+    return false;
+  }
+
+  @Override
+public boolean supportsOpenStatementsAcrossRollback() {
+
+    return false;
+  }
+
+  @Override
+public int getMaxBinaryLiteralLength() {
 
     return 0;
   }
 
-  public int getMaxCharLiteralLength() {
+  @Override
+public int getMaxCharLiteralLength() {
 
     return 0;
   }
 
-  public int getMaxColumnNameLength() {
+  @Override
+public int getMaxColumnNameLength() {
 
     return 0;
   }
 
-  public int getMaxColumnsInGroupBy() {
+  @Override
+public int getMaxColumnsInGroupBy() {
 
     return 0;
   }
 
-  public int getMaxColumnsInIndex() {
+  @Override
+public int getMaxColumnsInIndex() {
 
     return 0;
   }
 
-  public int getMaxColumnsInOrderBy() {
+  @Override
+public int getMaxColumnsInOrderBy() {
 
     return 0;
   }
 
-  public int getMaxColumnsInSelect() {
+  @Override
+public int getMaxColumnsInSelect() {
 
     return 0;
   }
 
-  public int getMaxColumnsInTable() {
+  @Override
+public int getMaxColumnsInTable() {
 
     return 0;
   }
@@ -936,50 +1046,60 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
   /**
    * @see java.sql.DatabaseMetaData#getMaxConnections()
    */
-  public int getMaxConnections() {
+  @Override
+public int getMaxConnections() {
     return 0;
   }
 
-  public int getMaxCursorNameLength() {
-
-    return 0;
-  }
-
-  public int getMaxIndexLength() {
-
-    return 0;
-  }
-
-  public int getMaxSchemaNameLength() {
+  @Override
+public int getMaxCursorNameLength() {
 
     return 0;
   }
 
-  public int getMaxProcedureNameLength() {
+  @Override
+public int getMaxIndexLength() {
 
     return 0;
   }
 
-  public int getMaxCatalogNameLength() {
-    return 0;
-  }
-
-  public int getMaxRowSize() {
+  @Override
+public int getMaxSchemaNameLength() {
 
     return 0;
   }
 
-  public boolean doesMaxRowSizeIncludeBlobs() {
+  @Override
+public int getMaxProcedureNameLength() {
+
+    return 0;
+  }
+
+  @Override
+public int getMaxCatalogNameLength() {
+    return 0;
+  }
+
+  @Override
+public int getMaxRowSize() {
+
+    return 0;
+  }
+
+  @Override
+public boolean doesMaxRowSizeIncludeBlobs() {
 
     return false;
   }
 
-  public int getMaxStatementLength() {
+  @Override
+public int getMaxStatementLength() {
 
     return 0;
   }
 
-  public int getMaxStatements() {
+  @Override
+public int getMaxStatements() {
 
     return 0;
   }
@@ -987,7 +1107,8 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
   /**
    * @see java.sql.DatabaseMetaData#getMaxTableNameLength()
    */
-  public int getMaxTableNameLength() {
+  @Override
+public int getMaxTableNameLength() {
     /*
      * The maximum size of a collection name is 128 characters (including the name of the db and indexes).
      * It is probably best to keep it under 80/90 chars.
@@ -998,12 +1119,14 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
   /**
    * @see java.sql.DatabaseMetaData#getMaxTablesInSelect()
    */
-  public int getMaxTablesInSelect() {
+  @Override
+public int getMaxTablesInSelect() {
     // MongoDB collections are represented as SQL tables in this driver. Mongo doesn't support joins.
     return 1;
   }
 
-  public int getMaxUserNameLength() {
+  @Override
+public int getMaxUserNameLength() {
 
     return 0;
   }
@@ -1011,7 +1134,8 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
   /**
    * @see java.sql.DatabaseMetaData#getDefaultTransactionIsolation()
    */
-  public int getDefaultTransactionIsolation() {
+  @Override
+public int getDefaultTransactionIsolation() {
     return Connection.TRANSACTION_NONE;
   }
 
@@ -1020,35 +1144,41 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
    *
    * @see java.sql.DatabaseMetaData#supportsTransactions()
    */
-  public boolean supportsTransactions() {
+  @Override
+public boolean supportsTransactions() {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsTransactionIsolationLevel(int)
    */
-  public boolean supportsTransactionIsolationLevel(int level) {
+  @Override
+public boolean supportsTransactionIsolationLevel(int level) {
     return false;
   }
 
   /**
    * @see java.sql.DatabaseMetaData#supportsDataDefinitionAndDataManipulationTransactions()
    */
-  public boolean supportsDataDefinitionAndDataManipulationTransactions() {
+  @Override
+public boolean supportsDataDefinitionAndDataManipulationTransactions() {
     return false;
   }
 
-  public boolean supportsDataManipulationTransactionsOnly() {
+  @Override
+public boolean supportsDataManipulationTransactionsOnly() {
 
     return false;
   }
 
-  public boolean dataDefinitionCausesTransactionCommit() {
+  @Override
+public boolean dataDefinitionCausesTransactionCommit() {
 
     return false;
   }
 
-  public boolean dataDefinitionIgnoredInTransactions() {
+  @Override
+public boolean dataDefinitionIgnoredInTransactions() {
 
     return false;
   }
@@ -1056,7 +1186,8 @@ public class MongoDatabaseMetaData implements DatabaseMetaData {
   /**
    * @see java.sql.DatabaseMetaData#getProcedures(java.lang.String, java.lang.String, java.lang.String)
    */
-  public ResultSet getProcedures(String catalogName, String schemaPattern, String procedureNamePattern) {
+  @Override
+public ResultSet getProcedures(String catalogName, String schemaPattern, String procedureNamePattern) {
     ListResultSet retVal = new ListResultSet();
     retVal.setColumnNames("PROCEDURE_CAT", "PROCEDURE_SCHEMA", "PROCEDURE_NAME", "REMARKS",
         "PROCEDURE_TYPE", "SPECIFIC_NAME");

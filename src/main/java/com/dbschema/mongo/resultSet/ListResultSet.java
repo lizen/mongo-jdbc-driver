@@ -1,1062 +1,1273 @@
 package com.dbschema.mongo.resultSet;
 
-import com.dbschema.mongo.SQLAlreadyClosedException;
-
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
-import java.sql.*;
+import java.sql.Array;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.Date;
+import java.sql.NClob;
+import java.sql.Ref;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.RowId;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.sql.SQLWarning;
+import java.sql.SQLXML;
+import java.sql.Statement;
+import java.sql.Time;
+import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
+import com.dbschema.mongo.SQLAlreadyClosedException;
+
 public class ListResultSet implements ResultSet {
-  private final List<Object[]> data;
-  private String[] columnNames;
-  private int currentRow = -1;
-  private boolean isClosed = false;
-
-  public ListResultSet() {
-    this(new ArrayList<>(), new String[0]);
-  }
-
-  public ListResultSet(List<Object[]> data, String[] columnNames) {
-    this.data = data;
-    this.columnNames = columnNames;
-  }
-
-  public ListResultSet(Object value, String[] columnNames) {
-    this.data = new ArrayList<>();
-    this.data.add(new Object[]{value});
-    this.columnNames = columnNames;
-  }
-
-  public void setColumnNames(String... columnNames) {
-    this.columnNames = columnNames;
-  }
-
-  public void addRow(Object[] columnValues) {
-    data.add(columnValues);
-  }
-
-  public <T> T unwrap(Class<T> iface) {
-    return null;
-  }
-
-  public boolean isWrapperFor(Class<?> iface) {
-    return false;
-  }
-
-  /**
-   * @see java.sql.ResultSet#next()
-   */
-  public boolean next() {
-    if (data == null) {
-      return false;
-    }
-    if (currentRow < data.size() - 1) {
-      currentRow++;
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * @see java.sql.ResultSet#close()
-   */
-  public void close() throws SQLAlreadyClosedException {
-    checkClosed();
-    this.isClosed = true;
-  }
-
-  private void checkClosed() throws SQLAlreadyClosedException {
-    if (isClosed) throw new SQLAlreadyClosedException(this.getClass().getSimpleName());
-  }
-
-  public boolean isClosed() {
-    return isClosed;
-  }
-
-  /**
-   * @see java.sql.ResultSet#wasNull()
-   */
-  public boolean wasNull() {
-    return false;
-  }
-
-  public String getString(int columnIndex) throws SQLException {
-    if (currentRow >= data.size()) {
-      throw new SQLException("ResultSet exhausted, request currentRow = " + currentRow);
-    }
-    int adjustedColumnIndex = columnIndex - 1;
-    if (adjustedColumnIndex >= data.get(currentRow).length) {
-      throw new SQLException("Column index does not exist: " + columnIndex);
-    }
-    final Object val = data.get(currentRow)[adjustedColumnIndex];
-    return val != null ? val.toString() : null;
-  }
-
-  public boolean getBoolean(int columnIndex) throws SQLException {
-    return Boolean.parseBoolean(getString(columnIndex));
-  }
-
-  public byte getByte(int columnIndex) {
-
-    return 0;
-  }
-
-  /**
-   * @see java.sql.ResultSet#getShort(int)
-   */
-  public short getShort(int columnIndex) throws SQLException {
-    checkClosed();
-    return Short.parseShort(getString(columnIndex));
-  }
-
-  /**
-   * @see java.sql.ResultSet#getInt(int)
-   */
-  public int getInt(int columnIndex) throws SQLException {
-    checkClosed();
-    return Integer.parseInt(getString(columnIndex));
-  }
-
-  /**
-   * @see java.sql.ResultSet#getLong(int)
-   */
-  public long getLong(int columnIndex) throws SQLException {
-    checkClosed();
-    return Long.parseLong(getString(columnIndex));
-  }
-
-  /**
-   * @see java.sql.ResultSet#getFloat(int)
-   */
-  public float getFloat(int columnIndex) throws SQLException {
-    checkClosed();
-    return Float.parseFloat(getString(columnIndex));
-  }
-
-  /**
-   * @see java.sql.ResultSet#getDouble(int)
-   */
-  public double getDouble(int columnIndex) throws SQLException {
-    checkClosed();
-    return Double.parseDouble(getString(columnIndex));
-  }
-
-  public BigDecimal getBigDecimal(int columnIndex, int scale) {
-
-    return null;
-  }
-
-  public byte[] getBytes(int columnIndex) {
-
-    return null;
-  }
-
-  public Date getDate(int columnIndex) {
-
-    return null;
-  }
-
-  public Time getTime(int columnIndex) {
-
-    return null;
-  }
-
-  public Timestamp getTimestamp(int columnIndex) {
-
-    return null;
-  }
-
-  public InputStream getAsciiStream(int columnIndex) {
-
-    return null;
-  }
-
-  public InputStream getUnicodeStream(int columnIndex) {
-
-    return null;
-  }
-
-  public InputStream getBinaryStream(int columnIndex) {
-
-    return null;
-  }
-
-  public String getString(String columnLabel) throws SQLException {
-    checkClosed();
-    int index = -1;
-    if (columnNames == null) {
-      throw new SQLException("Use of columnLabel requires setColumnNames to be called first.");
-    }
-    for (int i = 0; i < columnNames.length; i++) {
-      if (columnLabel.equals(columnNames[i])) {
-        index = i;
-        break;
-      }
-    }
-    if (index == -1) {
-      throw new SQLException("Column " + columnLabel + " doesn't exist in this ResultSet");
-    }
-    return getString(index + 1);
-  }
-
-  public boolean getBoolean(String columnLabel) throws SQLException {
-    checkClosed();
-
-    return false;
-  }
-
-  public byte getByte(String columnLabel) {
-
-    return 0;
-  }
-
-  public short getShort(String columnLabel) {
-
-    return 0;
-  }
-
-  public int getInt(String columnLabel) {
-
-    return 0;
-  }
-
-  public long getLong(String columnLabel) {
-
-    return 0;
-  }
-
-  public float getFloat(String columnLabel) {
-
-    return 0;
-  }
-
-  public double getDouble(String columnLabel) throws SQLException {
-    return Double.parseDouble(getString(columnLabel));
-  }
-
-  public BigDecimal getBigDecimal(String columnLabel, int scale) {
-
-    return null;
-  }
-
-  public byte[] getBytes(String columnLabel) throws SQLException {
-    return getString(columnLabel).getBytes();
-  }
-
-  public Date getDate(String columnLabel) {
-
-    return null;
-  }
-
-  public Time getTime(String columnLabel) {
-
-    return null;
-  }
-
-  public Timestamp getTimestamp(String columnLabel) {
-
-    return null;
-  }
-
-  public InputStream getAsciiStream(String columnLabel) {
-
-    return null;
-  }
-
-  public InputStream getUnicodeStream(String columnLabel) {
-    return null;
-  }
-
-  public InputStream getBinaryStream(String columnLabel) {
-    return null;
-  }
-
-  public SQLWarning getWarnings() {
-    return null;
-  }
-
-  public void clearWarnings() {
-
-
-  }
-
-  public String getCursorName() {
-
-    return null;
-  }
-
-  /**
-   * @see java.sql.ResultSet#getMetaData()
-   */
-  public ResultSetMetaData getMetaData() throws SQLException {
-    checkClosed();
-
-    if (data == null) {
-      return new MongoResultSetMetaData(null, new String[0], new int[0]);
+    private final List<Object[]> data;
+    private String[] columnNames;
+    private int currentRow = -1;
+    private boolean isClosed = false;
+
+    public ListResultSet() {
+        this(new ArrayList<>(), new String[0]);
     }
 
-    int[] columnJavaTypes = new int[columnNames.length];
-    for (int i = 0; i < columnNames.length; i++) {
-      columnJavaTypes[i] = Types.OTHER;
+    public ListResultSet(List<Object[]> data, String[] columnNames) {
+        this.data = data;
+        this.columnNames = columnNames;
     }
 
-    return new MongoResultSetMetaData(null, columnNames, columnJavaTypes);
-  }
-
-  public Object getObject(int columnIndex) throws SQLException {
-    if (currentRow >= data.size()) {
-      throw new SQLException("ResultSet exhausted, request currentRow = " + currentRow);
+    public ListResultSet(Object value, String[] columnNames) {
+        this.data = new ArrayList<>();
+        this.data.add(new Object[] {value});
+        this.columnNames = columnNames;
     }
-    int adjustedColumnIndex = columnIndex - 1;
-    if (adjustedColumnIndex >= data.get(currentRow).length) {
-      throw new SQLException("Column index does not exist: " + columnIndex);
+
+    public void setColumnNames(String... columnNames) {
+        this.columnNames = columnNames;
     }
-    return data.get(currentRow)[adjustedColumnIndex];
-  }
 
-  public Object getObject(String columnLabel) {
+    public void addRow(Object[] columnValues) {
+        data.add(columnValues);
+    }
+
+    @Override
+    public <T> T unwrap(Class<T> iface) {
+        return null;
+    }
+
+    @Override
+    public boolean isWrapperFor(Class<?> iface) {
+        return false;
+    }
+
+    /**
+     * @see java.sql.ResultSet#next()
+     */
+    @Override
+    public boolean next() {
+        if (data == null) {
+            return false;
+        }
+        if (currentRow < data.size() - 1) {
+            currentRow++;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @see java.sql.ResultSet#close()
+     */
+    @Override
+    public void close() throws SQLAlreadyClosedException {
+        checkClosed();
+        this.isClosed = true;
+    }
+
+    private void checkClosed() throws SQLAlreadyClosedException {
+        if (isClosed)
+            throw new SQLAlreadyClosedException(this.getClass().getSimpleName());
+    }
+
+    @Override
+    public boolean isClosed() {
+        return isClosed;
+    }
+
+    /**
+     * @see java.sql.ResultSet#wasNull()
+     */
+    @Override
+    public boolean wasNull() {
+        return false;
+    }
+
+    @Override
+    public String getString(int columnIndex) throws SQLException {
+        if (currentRow >= data.size()) {
+            throw new SQLException("ResultSet exhausted, request currentRow = " + currentRow);
+        }
+
+        if (currentRow == -1) {
+            next();
+        }
+
+        int adjustedColumnIndex = columnIndex - 1;
+        if (adjustedColumnIndex >= data.get(currentRow).length) {
+            throw new SQLException("Column index does not exist: " + columnIndex);
+        }
+        final Object val = data.get(currentRow)[adjustedColumnIndex];
+        return val != null ? val.toString() : null;
+    }
+
+    @Override
+    public boolean getBoolean(int columnIndex) throws SQLException {
+        return Boolean.parseBoolean(getString(columnIndex));
+    }
+
+    @Override
+    public byte getByte(int columnIndex) {
+
+        return 0;
+    }
+
+    /**
+     * @see java.sql.ResultSet#getShort(int)
+     */
+    @Override
+    public short getShort(int columnIndex) throws SQLException {
+        checkClosed();
+        return Short.parseShort(getString(columnIndex));
+    }
+
+    /**
+     * @see java.sql.ResultSet#getInt(int)
+     */
+    @Override
+    public int getInt(int columnIndex) throws SQLException {
+        checkClosed();
+        return Integer.parseInt(getString(columnIndex));
+    }
+
+    /**
+     * @see java.sql.ResultSet#getLong(int)
+     */
+    @Override
+    public long getLong(int columnIndex) throws SQLException {
+        checkClosed();
+        return Long.parseLong(getString(columnIndex));
+    }
+
+    /**
+     * @see java.sql.ResultSet#getFloat(int)
+     */
+    @Override
+    public float getFloat(int columnIndex) throws SQLException {
+        checkClosed();
+        return Float.parseFloat(getString(columnIndex));
+    }
+
+    /**
+     * @see java.sql.ResultSet#getDouble(int)
+     */
+    @Override
+    public double getDouble(int columnIndex) throws SQLException {
+        checkClosed();
+        return Double.parseDouble(getString(columnIndex));
+    }
+
+    @Override
+    public BigDecimal getBigDecimal(int columnIndex, int scale) {
+
+        return null;
+    }
+
+    @Override
+    public byte[] getBytes(int columnIndex) {
+
+        return null;
+    }
+
+    @Override
+    public Date getDate(int columnIndex) {
+
+        return null;
+    }
+
+    @Override
+    public Time getTime(int columnIndex) {
+
+        return null;
+    }
+
+    @Override
+    public Timestamp getTimestamp(int columnIndex) {
+
+        return null;
+    }
 
-    return null;
-  }
+    @Override
+    public InputStream getAsciiStream(int columnIndex) {
 
-  public int findColumn(String columnLabel) {
+        return null;
+    }
 
-    return 0;
-  }
+    @Override
+    public InputStream getUnicodeStream(int columnIndex) {
 
-  public Reader getCharacterStream(int columnIndex) {
+        return null;
+    }
 
-    return null;
-  }
+    @Override
+    public InputStream getBinaryStream(int columnIndex) {
 
-  public Reader getCharacterStream(String columnLabel) {
+        return null;
+    }
 
-    return null;
-  }
+    @Override
+    public String getString(String columnLabel) throws SQLException {
+        checkClosed();
+        int index = -1;
+        if (columnNames == null) {
+            throw new SQLException("Use of columnLabel requires setColumnNames to be called first.");
+        }
+        for (int i = 0; i < columnNames.length; i++) {
+            if (columnLabel.equals(columnNames[i])) {
+                index = i;
+                break;
+            }
+        }
+        if (index == -1) {
+            throw new SQLException("Column " + columnLabel + " doesn't exist in this ResultSet");
+        }
+        return getString(index + 1);
+    }
 
-  public BigDecimal getBigDecimal(int columnIndex) {
+    @Override
+    public boolean getBoolean(String columnLabel) throws SQLException {
+        checkClosed();
 
-    return null;
-  }
+        return Boolean.parseBoolean(getString(columnLabel));
+    }
 
-  public BigDecimal getBigDecimal(String columnLabel) {
+    @Override
+    public byte getByte(String columnLabel) {
 
-    return null;
-  }
+        return 0;
+    }
 
-  public boolean isBeforeFirst() {
+    @Override
+    public short getShort(String columnLabel) throws SQLException {
 
-    return false;
-  }
+        return Short.parseShort(getString(columnLabel));
+    }
 
-  public boolean isAfterLast() {
+    @Override
+    public int getInt(String columnLabel) throws SQLException {
 
-    return false;
-  }
+        return Integer.parseInt(getString(columnLabel));
+    }
 
-  public boolean isFirst() {
+    @Override
+    public long getLong(String columnLabel) throws SQLException {
 
-    return false;
-  }
+        return Long.parseLong(getString(columnLabel));
+    }
 
-  public boolean isLast() {
+    @Override
+    public float getFloat(String columnLabel) throws SQLException {
+
+        return Float.parseFloat(getString(columnLabel));
+    }
+
+    @Override
+    public double getDouble(String columnLabel) throws SQLException {
+        return Double.parseDouble(getString(columnLabel));
+    }
 
-    return false;
-  }
+    @Override
+    public BigDecimal getBigDecimal(String columnLabel, int scale) throws SQLException {
 
-  public void beforeFirst() {
+        return new BigDecimal(getString(columnLabel).replace(",", ""));
+    }
 
+    @Override
+    public byte[] getBytes(String columnLabel) throws SQLException {
+        return getString(columnLabel).getBytes();
+    }
 
-  }
+    @Override
+    public Date getDate(String columnLabel) {
 
-  public void afterLast() {
+        return null;
+    }
 
+    @Override
+    public Time getTime(String columnLabel) {
 
-  }
+        return null;
+    }
 
-  public boolean first() {
+    @Override
+    public Timestamp getTimestamp(String columnLabel) {
 
-    return false;
-  }
+        return null;
+    }
 
-  public boolean last() {
+    @Override
+    public InputStream getAsciiStream(String columnLabel) {
 
-    return false;
-  }
+        return null;
+    }
 
-  public int getRow() {
+    @Override
+    public InputStream getUnicodeStream(String columnLabel) {
+        return null;
+    }
 
-    return 0;
-  }
+    @Override
+    public InputStream getBinaryStream(String columnLabel) {
+        return null;
+    }
 
-  public boolean absolute(int row) {
+    @Override
+    public SQLWarning getWarnings() {
+        return null;
+    }
 
-    return false;
-  }
+    @Override
+    public void clearWarnings() {
 
-  public boolean relative(int rows) {
 
-    return false;
-  }
+    }
 
-  public boolean previous() {
+    @Override
+    public String getCursorName() {
 
-    return false;
-  }
+        return null;
+    }
 
-  public void setFetchDirection(int direction) throws SQLFeatureNotSupportedException {
-    throw new SQLFeatureNotSupportedException();
-  }
+    /**
+     * @see java.sql.ResultSet#getMetaData()
+     */
+    @Override
+    public ResultSetMetaData getMetaData() throws SQLException {
+        checkClosed();
 
-  public int getFetchDirection() {
-    return ResultSet.FETCH_FORWARD;
-  }
+        if (data == null) {
+            return new MongoResultSetMetaData(null, new String[0], new int[0]);
+        }
 
-  public void setFetchSize(int rows) {
+        int[] columnJavaTypes = new int[columnNames.length];
+        for (int i = 0; i < columnNames.length; i++) {
+            columnJavaTypes[i] = Types.OTHER;
+        }
 
-  }
+        return new MongoResultSetMetaData(null, columnNames, columnJavaTypes);
+    }
 
-  public int getFetchSize() {
-    return 0;
-  }
+    @Override
+    public Object getObject(int columnIndex) throws SQLException {
+        if (currentRow >= data.size()) {
+            throw new SQLException("ResultSet exhausted, request currentRow = " + currentRow);
+        }
+        int adjustedColumnIndex = columnIndex - 1;
+        if (adjustedColumnIndex >= data.get(currentRow).length) {
+            throw new SQLException("Column index does not exist: " + columnIndex);
+        }
+        return data.get(currentRow)[adjustedColumnIndex];
+    }
 
-  /**
-   * @see java.sql.ResultSet#getType()
-   */
-  public int getType() {
-    return ResultSet.TYPE_FORWARD_ONLY;
-  }
+    @Override
+    public Object getObject(String columnLabel) {
 
-  /**
-   * @see java.sql.ResultSet#getConcurrency()
-   */
-  public int getConcurrency() throws SQLFeatureNotSupportedException {
-    throw new SQLFeatureNotSupportedException();
-  }
+        return null;
+    }
 
-  public boolean rowUpdated() {
+    @Override
+    public int findColumn(String columnLabel) {
 
-    return false;
-  }
+        return 0;
+    }
 
-  public boolean rowInserted() {
+    @Override
+    public Reader getCharacterStream(int columnIndex) {
 
-    return false;
-  }
+        return null;
+    }
 
-  public boolean rowDeleted() {
+    @Override
+    public Reader getCharacterStream(String columnLabel) {
 
-    return false;
-  }
+        return null;
+    }
 
-  public void updateNull(int columnIndex) {
+    @Override
+    public BigDecimal getBigDecimal(int columnIndex) {
 
+        return null;
+    }
 
-  }
+    @Override
+    public BigDecimal getBigDecimal(String columnLabel) throws SQLException {
 
-  public void updateBoolean(int columnIndex, boolean x) {
+        return new BigDecimal(getString(columnLabel).replace(",", ""));
+    }
 
+    @Override
+    public boolean isBeforeFirst() {
 
-  }
+        return false;
+    }
 
-  public void updateByte(int columnIndex, byte x) {
+    @Override
+    public boolean isAfterLast() {
 
+        return false;
+    }
 
-  }
+    @Override
+    public boolean isFirst() {
 
-  public void updateShort(int columnIndex, short x) {
+        return false;
+    }
 
+    @Override
+    public boolean isLast() {
 
-  }
+        return false;
+    }
 
-  public void updateInt(int columnIndex, int x) {
+    @Override
+    public void beforeFirst() {
 
 
-  }
+    }
 
-  public void updateLong(int columnIndex, long x) {
+    @Override
+    public void afterLast() {
 
 
-  }
+    }
 
-  public void updateFloat(int columnIndex, float x) {
+    @Override
+    public boolean first() {
 
+        return false;
+    }
 
-  }
+    @Override
+    public boolean last() {
 
-  public void updateDouble(int columnIndex, double x) {
+        return false;
+    }
 
+    @Override
+    public int getRow() {
 
-  }
+        return 0;
+    }
 
-  public void updateBigDecimal(int columnIndex, BigDecimal x) {
+    @Override
+    public boolean absolute(int row) {
 
+        return false;
+    }
 
-  }
+    @Override
+    public boolean relative(int rows) {
 
-  public void updateString(int columnIndex, String x) {
+        return false;
+    }
 
+    @Override
+    public boolean previous() {
 
-  }
+        return false;
+    }
 
-  public void updateBytes(int columnIndex, byte[] x) {
+    @Override
+    public void setFetchDirection(int direction) throws SQLFeatureNotSupportedException {
+        throw new SQLFeatureNotSupportedException();
+    }
 
+    @Override
+    public int getFetchDirection() {
+        return ResultSet.FETCH_FORWARD;
+    }
 
-  }
+    @Override
+    public void setFetchSize(int rows) {
 
-  public void updateDate(int columnIndex, Date x) {
+    }
 
+    @Override
+    public int getFetchSize() {
+        return 0;
+    }
 
-  }
+    /**
+     * @see java.sql.ResultSet#getType()
+     */
+    @Override
+    public int getType() {
+        return ResultSet.TYPE_FORWARD_ONLY;
+    }
 
-  public void updateTime(int columnIndex, Time x) {
+    /**
+     * @see java.sql.ResultSet#getConcurrency()
+     */
+    @Override
+    public int getConcurrency() throws SQLFeatureNotSupportedException {
+        throw new SQLFeatureNotSupportedException();
+    }
 
+    @Override
+    public boolean rowUpdated() {
 
-  }
+        return false;
+    }
 
-  public void updateTimestamp(int columnIndex, Timestamp x) {
+    @Override
+    public boolean rowInserted() {
 
+        return false;
+    }
 
-  }
+    @Override
+    public boolean rowDeleted() {
 
-  public void updateAsciiStream(int columnIndex, InputStream x, int length) {
+        return false;
+    }
 
+    @Override
+    public void updateNull(int columnIndex) {
 
-  }
 
-  public void updateBinaryStream(int columnIndex, InputStream x, int length) {
+    }
 
+    @Override
+    public void updateBoolean(int columnIndex, boolean x) {
 
-  }
 
-  public void updateCharacterStream(int columnIndex, Reader x, int length) {
+    }
 
+    @Override
+    public void updateByte(int columnIndex, byte x) {
 
-  }
 
-  public void updateObject(int columnIndex, Object x, int scaleOrLength) {
+    }
 
+    @Override
+    public void updateShort(int columnIndex, short x) {
 
-  }
 
-  public void updateObject(int columnIndex, Object x) {
+    }
 
+    @Override
+    public void updateInt(int columnIndex, int x) {
 
-  }
 
-  public void updateNull(String columnLabel) {
+    }
 
+    @Override
+    public void updateLong(int columnIndex, long x) {
 
-  }
 
-  public void updateBoolean(String columnLabel, boolean x) {
+    }
 
+    @Override
+    public void updateFloat(int columnIndex, float x) {
 
-  }
 
-  public void updateByte(String columnLabel, byte x) {
+    }
 
+    @Override
+    public void updateDouble(int columnIndex, double x) {
 
-  }
 
-  public void updateShort(String columnLabel, short x) {
+    }
 
+    @Override
+    public void updateBigDecimal(int columnIndex, BigDecimal x) {
 
-  }
 
-  public void updateInt(String columnLabel, int x) {
+    }
 
+    @Override
+    public void updateString(int columnIndex, String x) {
 
-  }
 
-  public void updateLong(String columnLabel, long x) {
+    }
 
+    @Override
+    public void updateBytes(int columnIndex, byte[] x) {
 
-  }
 
-  public void updateFloat(String columnLabel, float x) {
+    }
 
+    @Override
+    public void updateDate(int columnIndex, Date x) {
 
-  }
 
-  public void updateDouble(String columnLabel, double x) {
+    }
 
+    @Override
+    public void updateTime(int columnIndex, Time x) {
 
-  }
 
-  public void updateBigDecimal(String columnLabel, BigDecimal x) {
+    }
 
+    @Override
+    public void updateTimestamp(int columnIndex, Timestamp x) {
 
-  }
 
-  public void updateString(String columnLabel, String x) {
+    }
 
+    @Override
+    public void updateAsciiStream(int columnIndex, InputStream x, int length) {
 
-  }
 
-  public void updateBytes(String columnLabel, byte[] x) {
+    }
 
+    @Override
+    public void updateBinaryStream(int columnIndex, InputStream x, int length) {
 
-  }
 
-  public void updateDate(String columnLabel, Date x) {
+    }
 
+    @Override
+    public void updateCharacterStream(int columnIndex, Reader x, int length) {
 
-  }
 
-  public void updateTime(String columnLabel, Time x) {
+    }
 
+    @Override
+    public void updateObject(int columnIndex, Object x, int scaleOrLength) {
 
-  }
 
-  public void updateTimestamp(String columnLabel, Timestamp x) {
+    }
 
+    @Override
+    public void updateObject(int columnIndex, Object x) {
 
-  }
 
-  public void updateAsciiStream(String columnLabel, InputStream x, int length) {
+    }
 
+    @Override
+    public void updateNull(String columnLabel) {
 
-  }
 
-  public void updateBinaryStream(String columnLabel, InputStream x, int length) {
+    }
 
+    @Override
+    public void updateBoolean(String columnLabel, boolean x) {
 
-  }
 
-  public void updateCharacterStream(String columnLabel, Reader reader, int length) {
+    }
 
+    @Override
+    public void updateByte(String columnLabel, byte x) {
 
-  }
 
-  public void updateObject(String columnLabel, Object x, int scaleOrLength) {
+    }
 
+    @Override
+    public void updateShort(String columnLabel, short x) {
 
-  }
 
-  public void updateObject(String columnLabel, Object x) {
+    }
 
+    @Override
+    public void updateInt(String columnLabel, int x) {
 
-  }
 
-  public void insertRow() {
+    }
 
+    @Override
+    public void updateLong(String columnLabel, long x) {
 
-  }
 
-  public void updateRow() {
+    }
 
+    @Override
+    public void updateFloat(String columnLabel, float x) {
 
-  }
 
-  public void deleteRow() {
+    }
 
+    @Override
+    public void updateDouble(String columnLabel, double x) {
 
-  }
 
-  public void refreshRow() {
+    }
 
+    @Override
+    public void updateBigDecimal(String columnLabel, BigDecimal x) {
 
-  }
 
-  public void cancelRowUpdates() {
+    }
 
+    @Override
+    public void updateString(String columnLabel, String x) {
 
-  }
 
-  public void moveToInsertRow() {
+    }
 
+    @Override
+    public void updateBytes(String columnLabel, byte[] x) {
 
-  }
 
-  public void moveToCurrentRow() {
+    }
 
+    @Override
+    public void updateDate(String columnLabel, Date x) {
 
-  }
 
-  /**
-   * @see java.sql.ResultSet#getStatement()
-   */
-  public Statement getStatement() {
-    return null;
-  }
+    }
 
-  public Object getObject(int columnIndex, Map<String, Class<?>> map) {
+    @Override
+    public void updateTime(String columnLabel, Time x) {
 
-    return null;
-  }
 
-  public Ref getRef(int columnIndex) {
+    }
 
-    return null;
-  }
+    @Override
+    public void updateTimestamp(String columnLabel, Timestamp x) {
 
-  public Blob getBlob(int columnIndex) {
 
-    return null;
-  }
+    }
 
-  public Clob getClob(int columnIndex) {
+    @Override
+    public void updateAsciiStream(String columnLabel, InputStream x, int length) {
 
-    return null;
-  }
 
-  public Array getArray(int columnIndex) {
+    }
 
-    return null;
-  }
+    @Override
+    public void updateBinaryStream(String columnLabel, InputStream x, int length) {
 
-  public Object getObject(String columnLabel, Map<String, Class<?>> map) {
 
-    return null;
-  }
+    }
 
-  public Ref getRef(String columnLabel) {
+    @Override
+    public void updateCharacterStream(String columnLabel, Reader reader, int length) {
 
-    return null;
-  }
 
-  public Blob getBlob(String columnLabel) {
+    }
 
-    return null;
-  }
+    @Override
+    public void updateObject(String columnLabel, Object x, int scaleOrLength) {
 
-  public Clob getClob(String columnLabel) {
 
-    return null;
-  }
+    }
 
-  public Array getArray(String columnLabel) {
+    @Override
+    public void updateObject(String columnLabel, Object x) {
 
-    return null;
-  }
 
-  public Date getDate(int columnIndex, Calendar cal) {
+    }
 
-    return null;
-  }
+    @Override
+    public void insertRow() {
 
-  public Date getDate(String columnLabel, Calendar cal) {
 
-    return null;
-  }
+    }
 
-  public Time getTime(int columnIndex, Calendar cal) {
+    @Override
+    public void updateRow() {
 
-    return null;
-  }
 
-  public Time getTime(String columnLabel, Calendar cal) {
+    }
 
-    return null;
-  }
+    @Override
+    public void deleteRow() {
 
-  public Timestamp getTimestamp(int columnIndex, Calendar cal) {
 
-    return null;
-  }
+    }
 
-  public Timestamp getTimestamp(String columnLabel, Calendar cal) {
+    @Override
+    public void refreshRow() {
 
-    return null;
-  }
 
-  public URL getURL(int columnIndex) {
+    }
 
-    return null;
-  }
+    @Override
+    public void cancelRowUpdates() {
 
-  public URL getURL(String columnLabel) {
 
-    return null;
-  }
+    }
 
-  public void updateRef(int columnIndex, Ref x) {
+    @Override
+    public void moveToInsertRow() {
 
 
-  }
+    }
 
-  public void updateRef(String columnLabel, Ref x) {
+    @Override
+    public void moveToCurrentRow() {
 
 
-  }
+    }
 
-  public void updateBlob(int columnIndex, Blob x) {
+    /**
+     * @see java.sql.ResultSet#getStatement()
+     */
+    @Override
+    public Statement getStatement() {
+        return null;
+    }
 
+    @Override
+    public Object getObject(int columnIndex, Map<String, Class<?>> map) {
 
-  }
+        return null;
+    }
 
-  public void updateBlob(String columnLabel, Blob x) {
+    @Override
+    public Ref getRef(int columnIndex) {
 
+        return null;
+    }
 
-  }
+    @Override
+    public Blob getBlob(int columnIndex) {
 
-  public void updateClob(int columnIndex, Clob x) {
+        return null;
+    }
 
+    @Override
+    public Clob getClob(int columnIndex) {
 
-  }
+        return null;
+    }
 
-  public void updateClob(String columnLabel, Clob x) {
+    @Override
+    public Array getArray(int columnIndex) {
 
+        return null;
+    }
 
-  }
+    @Override
+    public Object getObject(String columnLabel, Map<String, Class<?>> map) {
 
-  public void updateArray(int columnIndex, Array x) {
+        return null;
+    }
 
+    @Override
+    public Ref getRef(String columnLabel) {
 
-  }
+        return null;
+    }
 
-  public void updateArray(String columnLabel, Array x) {
+    @Override
+    public Blob getBlob(String columnLabel) {
 
+        return null;
+    }
 
-  }
+    @Override
+    public Clob getClob(String columnLabel) {
 
-  public RowId getRowId(int columnIndex) {
+        return null;
+    }
 
-    return null;
-  }
+    @Override
+    public Array getArray(String columnLabel) {
 
-  public RowId getRowId(String columnLabel) {
+        return null;
+    }
 
-    return null;
-  }
+    @Override
+    public Date getDate(int columnIndex, Calendar cal) {
 
-  public void updateRowId(int columnIndex, RowId x) {
+        return null;
+    }
 
+    @Override
+    public Date getDate(String columnLabel, Calendar cal) {
 
-  }
+        return null;
+    }
 
-  public void updateRowId(String columnLabel, RowId x) {
+    @Override
+    public Time getTime(int columnIndex, Calendar cal) {
 
+        return null;
+    }
 
-  }
+    @Override
+    public Time getTime(String columnLabel, Calendar cal) {
 
-  public int getHoldability() throws SQLFeatureNotSupportedException {
-    throw new SQLFeatureNotSupportedException();
-  }
+        return null;
+    }
 
-  public void updateNString(int columnIndex, String nString) throws SQLException {
-    checkClosed();
-  }
+    @Override
+    public Timestamp getTimestamp(int columnIndex, Calendar cal) {
 
-  public void updateNString(String columnLabel, String nString) {
+        return null;
+    }
 
+    @Override
+    public Timestamp getTimestamp(String columnLabel, Calendar cal) {
 
-  }
+        return null;
+    }
 
-  public void updateNClob(int columnIndex, NClob nClob) {
+    @Override
+    public URL getURL(int columnIndex) {
 
+        return null;
+    }
 
-  }
+    @Override
+    public URL getURL(String columnLabel) {
 
-  public void updateNClob(String columnLabel, NClob nClob) {
+        return null;
+    }
 
+    @Override
+    public void updateRef(int columnIndex, Ref x) {
 
-  }
 
-  public NClob getNClob(int columnIndex) {
+    }
 
-    return null;
-  }
+    @Override
+    public void updateRef(String columnLabel, Ref x) {
 
-  public NClob getNClob(String columnLabel) {
 
-    return null;
-  }
+    }
 
-  public SQLXML getSQLXML(int columnIndex) {
+    @Override
+    public void updateBlob(int columnIndex, Blob x) {
 
-    return null;
-  }
 
-  public SQLXML getSQLXML(String columnLabel) {
+    }
 
-    return null;
-  }
+    @Override
+    public void updateBlob(String columnLabel, Blob x) {
 
-  public void updateSQLXML(int columnIndex, SQLXML xmlObject) {
 
+    }
 
-  }
+    @Override
+    public void updateClob(int columnIndex, Clob x) {
 
-  public void updateSQLXML(String columnLabel, SQLXML xmlObject) {
 
+    }
 
-  }
+    @Override
+    public void updateClob(String columnLabel, Clob x) {
 
-  public String getNString(int columnIndex) {
 
-    return null;
-  }
+    }
 
-  public String getNString(String columnLabel) {
+    @Override
+    public void updateArray(int columnIndex, Array x) {
 
-    return null;
-  }
 
-  public Reader getNCharacterStream(int columnIndex) {
+    }
 
-    return null;
-  }
+    @Override
+    public void updateArray(String columnLabel, Array x) {
 
-  public Reader getNCharacterStream(String columnLabel) {
 
-    return null;
-  }
+    }
 
-  public void updateNCharacterStream(int columnIndex, Reader x, long length) {
+    @Override
+    public RowId getRowId(int columnIndex) {
 
+        return null;
+    }
 
-  }
+    @Override
+    public RowId getRowId(String columnLabel) {
 
-  public void updateNCharacterStream(String columnLabel, Reader reader, long length) {
+        return null;
+    }
 
+    @Override
+    public void updateRowId(int columnIndex, RowId x) {
 
-  }
 
-  public void updateAsciiStream(int columnIndex, InputStream x, long length) {
+    }
 
+    @Override
+    public void updateRowId(String columnLabel, RowId x) {
 
-  }
 
-  public void updateBinaryStream(int columnIndex, InputStream x, long length) {
+    }
 
+    @Override
+    public int getHoldability() throws SQLFeatureNotSupportedException {
+        throw new SQLFeatureNotSupportedException();
+    }
 
-  }
+    @Override
+    public void updateNString(int columnIndex, String nString) throws SQLException {
+        checkClosed();
+    }
 
-  public void updateCharacterStream(int columnIndex, Reader x, long length) {
+    @Override
+    public void updateNString(String columnLabel, String nString) {
 
 
-  }
+    }
 
-  public void updateAsciiStream(String columnLabel, InputStream x, long length) {
+    @Override
+    public void updateNClob(int columnIndex, NClob nClob) {
 
 
-  }
+    }
 
-  public void updateBinaryStream(String columnLabel, InputStream x, long length) {
+    @Override
+    public void updateNClob(String columnLabel, NClob nClob) {
 
 
-  }
+    }
 
-  public void updateCharacterStream(String columnLabel, Reader reader, long length) {
+    @Override
+    public NClob getNClob(int columnIndex) {
 
+        return null;
+    }
 
-  }
+    @Override
+    public NClob getNClob(String columnLabel) {
 
-  public void updateBlob(int columnIndex, InputStream inputStream, long length) {
+        return null;
+    }
 
+    @Override
+    public SQLXML getSQLXML(int columnIndex) {
 
-  }
+        return null;
+    }
 
-  public void updateBlob(String columnLabel, InputStream inputStream, long length) {
+    @Override
+    public SQLXML getSQLXML(String columnLabel) {
 
+        return null;
+    }
 
-  }
+    @Override
+    public void updateSQLXML(int columnIndex, SQLXML xmlObject) {
 
-  public void updateClob(int columnIndex, Reader reader, long length) {
 
+    }
 
-  }
+    @Override
+    public void updateSQLXML(String columnLabel, SQLXML xmlObject) {
 
-  public void updateClob(String columnLabel, Reader reader, long length) {
 
+    }
 
-  }
+    @Override
+    public String getNString(int columnIndex) {
 
-  public void updateNClob(int columnIndex, Reader reader, long length) {
+        return null;
+    }
 
+    @Override
+    public String getNString(String columnLabel) {
 
-  }
+        return null;
+    }
 
-  public void updateNClob(String columnLabel, Reader reader, long length) {
+    @Override
+    public Reader getNCharacterStream(int columnIndex) {
 
+        return null;
+    }
 
-  }
+    @Override
+    public Reader getNCharacterStream(String columnLabel) {
 
-  public void updateNCharacterStream(int columnIndex, Reader x) {
+        return null;
+    }
 
+    @Override
+    public void updateNCharacterStream(int columnIndex, Reader x, long length) {
 
-  }
 
-  public void updateNCharacterStream(String columnLabel, Reader reader) {
+    }
 
+    @Override
+    public void updateNCharacterStream(String columnLabel, Reader reader, long length) {
 
-  }
 
-  public void updateAsciiStream(int columnIndex, InputStream x) {
+    }
 
+    @Override
+    public void updateAsciiStream(int columnIndex, InputStream x, long length) {
 
-  }
 
-  public void updateBinaryStream(int columnIndex, InputStream x) {
+    }
 
+    @Override
+    public void updateBinaryStream(int columnIndex, InputStream x, long length) {
 
-  }
 
-  public void updateCharacterStream(int columnIndex, Reader x) {
+    }
 
+    @Override
+    public void updateCharacterStream(int columnIndex, Reader x, long length) {
 
-  }
 
-  public void updateAsciiStream(String columnLabel, InputStream x) {
+    }
 
+    @Override
+    public void updateAsciiStream(String columnLabel, InputStream x, long length) {
 
-  }
 
-  public void updateBinaryStream(String columnLabel, InputStream x) {
+    }
 
+    @Override
+    public void updateBinaryStream(String columnLabel, InputStream x, long length) {
 
-  }
 
-  public void updateCharacterStream(String columnLabel, Reader reader) {
+    }
 
+    @Override
+    public void updateCharacterStream(String columnLabel, Reader reader, long length) {
 
-  }
 
-  public void updateBlob(int columnIndex, InputStream inputStream) {
+    }
 
+    @Override
+    public void updateBlob(int columnIndex, InputStream inputStream, long length) {
 
-  }
 
-  public void updateBlob(String columnLabel, InputStream inputStream) {
+    }
 
+    @Override
+    public void updateBlob(String columnLabel, InputStream inputStream, long length) {
 
-  }
 
-  public void updateClob(int columnIndex, Reader reader) {
+    }
 
+    @Override
+    public void updateClob(int columnIndex, Reader reader, long length) {
 
-  }
 
-  public void updateClob(String columnLabel, Reader reader) {
+    }
 
+    @Override
+    public void updateClob(String columnLabel, Reader reader, long length) {
 
-  }
 
-  public void updateNClob(int columnIndex, Reader reader) {
+    }
 
+    @Override
+    public void updateNClob(int columnIndex, Reader reader, long length) {
 
-  }
 
-  public void updateNClob(String columnLabel, Reader reader) {
+    }
 
+    @Override
+    public void updateNClob(String columnLabel, Reader reader, long length) {
 
-  }
 
-  @Override
-  public <T> T getObject(int columnIndex, Class<T> type) {
-    return null;
-  }
+    }
 
-  @Override
-  public <T> T getObject(String columnLabel, Class<T> type) {
-    return null;
-  }
+    @Override
+    public void updateNCharacterStream(int columnIndex, Reader x) {
+
+
+    }
+
+    @Override
+    public void updateNCharacterStream(String columnLabel, Reader reader) {
+
+
+    }
+
+    @Override
+    public void updateAsciiStream(int columnIndex, InputStream x) {
+
+
+    }
+
+    @Override
+    public void updateBinaryStream(int columnIndex, InputStream x) {
+
+
+    }
+
+    @Override
+    public void updateCharacterStream(int columnIndex, Reader x) {
+
+
+    }
+
+    @Override
+    public void updateAsciiStream(String columnLabel, InputStream x) {
+
+
+    }
+
+    @Override
+    public void updateBinaryStream(String columnLabel, InputStream x) {
+
+
+    }
+
+    @Override
+    public void updateCharacterStream(String columnLabel, Reader reader) {
+
+
+    }
+
+    @Override
+    public void updateBlob(int columnIndex, InputStream inputStream) {
+
+
+    }
+
+    @Override
+    public void updateBlob(String columnLabel, InputStream inputStream) {
+
+
+    }
+
+    @Override
+    public void updateClob(int columnIndex, Reader reader) {
+
+
+    }
+
+    @Override
+    public void updateClob(String columnLabel, Reader reader) {
+
+
+    }
+
+    @Override
+    public void updateNClob(int columnIndex, Reader reader) {
+
+
+    }
+
+    @Override
+    public void updateNClob(String columnLabel, Reader reader) {
+
+
+    }
+
+    @Override
+    public <T> T getObject(int columnIndex, Class<T> type) {
+        return null;
+    }
+
+    @Override
+    public <T> T getObject(String columnLabel, Class<T> type) {
+        return null;
+    }
 }
